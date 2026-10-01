@@ -3,17 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StarkGate Legacy ETH Claim</title>
+  <title>StarkGate Legacy ETH Claim Tool</title>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       max-width: 820px;
       margin: 50px auto;
       padding: 20px;
-      background: #f7f5ef;
+      background: #f7f3e8;
       color: #202124;
     }
 
@@ -29,31 +33,41 @@
       margin-top: 0;
     }
 
-    .amount {
-      font-size: 36px;
-      font-weight: 700;
-      margin-bottom: 5px;
+    h2 {
+      margin-top: 0;
+      font-size: 19px;
     }
 
-    .green {
-      color: #109b8c;
+    .subtitle {
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .bridge {
+      word-break: break-all;
+      font-family: monospace;
+      background: #f5f5f5;
+      padding: 12px;
+      border-radius: 8px;
     }
 
     label {
       display: block;
-      font-weight: 600;
+      font-weight: 650;
       margin-top: 18px;
-      margin-bottom: 6px;
+      margin-bottom: 7px;
     }
 
     input {
       width: 100%;
-      box-sizing: border-box;
       padding: 13px;
-      font-family: monospace;
       border: 1px solid #ccc;
       border-radius: 9px;
-      font-size: 14px;
+      font-size: 15px;
+    }
+
+    input.address {
+      font-family: monospace;
     }
 
     button {
@@ -62,8 +76,8 @@
       margin-top: 15px;
       border: none;
       border-radius: 10px;
-      font-size: 17px;
-      font-weight: 600;
+      font-size: 16px;
+      font-weight: 650;
       cursor: pointer;
     }
 
@@ -78,7 +92,7 @@
     }
 
     #claim {
-      background: #109b8c;
+      background: #159b8b;
       color: white;
     }
 
@@ -94,110 +108,105 @@
       padding: 15px;
       border-radius: 10px;
       font-size: 13px;
+      line-height: 1.5;
     }
 
     .warning {
-      background: #fff2d7;
+      background: #fff1d5;
       padding: 15px;
       border-radius: 10px;
       margin-top: 18px;
+      line-height: 1.6;
     }
 
-    .ok {
-      background: #e5f6f2;
+    .safe {
+      background: #e7f6f2;
+      padding: 15px;
+      border-radius: 10px;
+      line-height: 1.6;
     }
 
-    .error {
-      background: #ffe5e5;
+    .small {
+      color: #666;
+      font-size: 13px;
+      line-height: 1.6;
     }
   </style>
 </head>
 
 <body>
 
-<div class="card">
+  <div class="card">
+    <h1>StarkGate Legacy ETH Claim</h1>
 
-  <h1>StarkGate Legacy ETH Claim</h1>
+    <p class="subtitle">
+      Starknet → Ethereum の古いStarkGate ETH withdrawalを
+      Ethereum側からClaimするためのツールです。
+    </p>
 
-  <div class="amount">
-    0.006 ETH
+    <div class="safe">
+      🔐 このサイトで秘密鍵等入力することはありません。
+      Walletの署名画面で内容を確認してから実行してください。
+    </div>
   </div>
 
-  <p class="green">
-    Starknet → Ethereum
-  </p>
 
-  <p>
-    Source Starknet TX:<br>
-    <code>
-      0x827a98ec05936d0df4b135ac4bb0ff43c3c05aad658dd7bce80d08d350b344
-    </code>
-  </p>
+  <div class="card">
 
-  <hr>
+    <button id="connect">
+      1. Walletを接続
+    </button>
 
-  <p>
-    <strong>Ethereum StarkGate ETH Bridge</strong><br>
-    <code>
-      0xae0Ee0A63A2cE6BaeEFFE56e7714FB4EFE48D419
-    </code>
-  </p>
+    <label>接続中のWallet</label>
+    <input
+      id="sender"
+      class="address"
+      readonly
+      placeholder="未接続"
+    >
 
-  <p>
-    Function:<br>
-    <code>withdraw(uint256 amount, address recipient)</code>
-  </p>
+    <label>ClaimするETHの金額</label>
+    <input
+      id="amount"
+      inputmode="decimal"
+      placeholder="例: 0.006"
+    >
 
-  <p>
-    Amount:<br>
-    <code>6000000000000000 wei</code>
-  </p>
+    <label>Ethereum Recipient</label>
+    <input
+      id="recipient"
+      class="address"
+      placeholder="0x..."
+    >
 
-</div>
+    <div class="warning">
+      ⚠️ <strong>AmountとRecipientは、元のStarknet withdrawalで指定した値と一致している必要があります。</strong>
+      <br><br>
+      接続WalletとRecipientが同じとは限りません。
+      Walletアドレスを自動入力しない仕様にしています。
+    </div>
 
+    <button id="check">
+      2. Claim可能かシミュレーション
+    </button>
 
-<div class="card">
+    <button id="claim" disabled>
+      3. Claim
+    </button>
 
-  <button id="connect">
-    1. Ethereum Walletを接続
-  </button>
-
-  <label>接続ウォレット</label>
-  <input id="sender" readonly placeholder="未接続">
-
-  <label>ETHの受取先アドレス</label>
-  <input
-    id="recipient"
-    placeholder="0x..."
-  >
-
-  <div class="warning">
-    ⚠️ ここは<strong>2023年にStarknetから出金するとき指定したEthereum受取先</strong>を入力してください。
-    <br><br>
-    Claimを実行するウォレットと受取先は同じでなくても構いません。
   </div>
 
-  <button id="check">
-    2. Claim可能かシミュレーション
-  </button>
 
-  <button id="claim" disabled>
-    3. 0.006 ETHをClaim
-  </button>
-
-</div>
+  <div class="card">
+    <h2>確認結果</h2>
+    <pre id="status">まだ実行していません。</pre>
+  </div>
 
 
-<div class="card">
-  <strong>結果</strong>
-  <pre id="status">まだ実行していません。</pre>
-</div>
-
-
-<div class="card">
-  <strong>送信予定Calldata</strong>
-  <pre id="calldata">---</pre>
-</div>
+  <div class="card">
+    <h2>Transaction Preview</h2>
+    <pre id="calldata">---</pre>
+  </div>
 
 
 <script>
@@ -205,16 +214,13 @@
 const BRIDGE =
   "0xae0Ee0A63A2cE6BaeEFFE56e7714FB4EFE48D419";
 
-const AMOUNT =
-  6000000000000000n;
-
 const ABI = [
   "function withdraw(uint256 amount,address recipient)"
 ];
 
-let provider;
-let signer;
-let contract;
+let provider = null;
+let signer = null;
+let contract = null;
 
 const connectButton =
   document.getElementById("connect");
@@ -228,10 +234,13 @@ const claimButton =
 const recipientInput =
   document.getElementById("recipient");
 
+const amountInput =
+  document.getElementById("amount");
+
 const senderInput =
   document.getElementById("sender");
 
-const status =
+const statusBox =
   document.getElementById("status");
 
 const calldataBox =
@@ -239,13 +248,83 @@ const calldataBox =
 
 
 function show(message) {
-  status.textContent = message;
+  statusBox.textContent = message;
+}
+
+
+function resetClaim() {
+  claimButton.disabled = true;
+}
+
+
+function getInputValues() {
+
+  const amountText =
+    amountInput.value.trim();
+
+  const recipient =
+    recipientInput.value.trim();
+
+  if (!amountText) {
+    throw new Error(
+      "ETH金額を入力してください。"
+    );
+  }
+
+  if (
+    !/^(?:0|[1-9]\d*)(?:\.\d{1,18})?$/.test(amountText)
+  ) {
+    throw new Error(
+      "ETH金額の形式が正しくありません。例: 0.006"
+    );
+  }
+
+  const amount =
+    ethers.parseEther(amountText);
+
+  if (amount <= 0n) {
+    throw new Error(
+      "金額は0より大きくしてください。"
+    );
+  }
+
+  if (!ethers.isAddress(recipient)) {
+    throw new Error(
+      "RecipientのEthereumアドレスが正しくありません。"
+    );
+  }
+
+  return {
+    amountText,
+    amount,
+    recipient
+  };
+}
+
+
+async function rebuildWallet() {
+
+  provider =
+    new ethers.BrowserProvider(
+      window.ethereum
+    );
+
+  signer =
+    await provider.getSigner();
+
+  contract =
+    new ethers.Contract(
+      BRIDGE,
+      ABI,
+      signer
+    );
+
 }
 
 
 async function ensureEthereumMainnet() {
 
-  const network =
+  let network =
     await provider.getNetwork();
 
   if (network.chainId !== 1n) {
@@ -263,15 +342,19 @@ async function ensureEthereumMainnet() {
       ]
     });
 
-    provider =
-      new ethers.BrowserProvider(
-        window.ethereum
-      );
+    await rebuildWallet();
 
-    signer =
-      await provider.getSigner();
+    network =
+      await provider.getNetwork();
 
   }
+
+  if (network.chainId !== 1n) {
+    throw new Error(
+      "Ethereum Mainnetに接続してください。"
+    );
+  }
+
 }
 
 
@@ -280,9 +363,11 @@ async () => {
 
   try {
 
+    resetClaim();
+
     if (!window.ethereum) {
       throw new Error(
-        "Brave Wallet / MetaMaskなどのEthereum Walletが見つかりません。"
+        "Ethereum Walletが見つかりません。Brave Wallet / MetaMaskなどを確認してください。"
       );
     }
 
@@ -296,10 +381,9 @@ async () => {
       []
     );
 
-    await ensureEthereumMainnet();
+    await rebuildWallet();
 
-    signer =
-      await provider.getSigner();
+    await ensureEthereumMainnet();
 
     const address =
       await signer.getAddress();
@@ -307,28 +391,19 @@ async () => {
     senderInput.value =
       address;
 
-    /*
-      とりあえず接続アドレスを
-      recipient候補として入力。
-      必ず元のwithdrawalのrecipientと
-      一致しているか確認してください。
-    */
-    if (!recipientInput.value) {
-      recipientInput.value =
-        address;
+    const code =
+      await provider.getCode(BRIDGE);
+
+    if (code === "0x") {
+      throw new Error(
+        "StarkGate Bridge contractをEthereum上で確認できませんでした。"
+      );
     }
 
-    contract =
-      new ethers.Contract(
-        BRIDGE,
-        ABI,
-        signer
-      );
-
     show(
-      "Wallet接続成功\n\n" +
+      "✅ Wallet接続成功\n\n" +
       "Network: Ethereum Mainnet\n" +
-      "Sender: " +
+      "Sender:\n" +
       address
     );
 
@@ -337,8 +412,9 @@ async () => {
     console.error(e);
 
     show(
-      "接続エラー:\n\n" +
+      "❌ 接続エラー\n\n" +
       (e.shortMessage ||
+       e.reason ||
        e.message ||
        String(e))
     );
@@ -353,7 +429,7 @@ async () => {
 
   try {
 
-    claimButton.disabled = true;
+    resetClaim();
 
     if (!signer) {
       throw new Error(
@@ -363,52 +439,77 @@ async () => {
 
     await ensureEthereumMainnet();
 
-    const recipient =
-      recipientInput.value.trim();
-
-    if (!ethers.isAddress(recipient)) {
-      throw new Error(
-        "recipientのEthereumアドレスが正しくありません。"
-      );
-    }
+    const {
+      amountText,
+      amount,
+      recipient
+    } = getInputValues();
 
 
     const data =
       contract.interface.encodeFunctionData(
         "withdraw",
         [
-          AMOUNT,
+          amount,
           recipient
         ]
       );
 
+
     calldataBox.textContent =
+      "NETWORK:\nEthereum Mainnet\n\n" +
+
       "TO:\n" +
       BRIDGE +
+
+      "\n\nFUNCTION:\n" +
+      "withdraw(uint256 amount, address recipient)" +
+
+      "\n\nAMOUNT:\n" +
+      amountText +
+      " ETH" +
+
+      "\n\nAMOUNT WEI:\n" +
+      amount.toString() +
+
+      "\n\nRECIPIENT:\n" +
+      recipient +
+
       "\n\nVALUE:\n0 ETH" +
-      "\n\nDATA:\n" +
+
+      "\n\nCALLDATA:\n" +
       data;
 
 
     show(
-      "Claim可能かEthereum上でシミュレーション中..."
+      "Claim可能かEthereum上でシミュレーションしています..."
     );
 
 
     const gas =
       await contract.withdraw.estimateGas(
-        AMOUNT,
+        amount,
         recipient
       );
 
 
     show(
       "✅ シミュレーション成功\n\n" +
-      "このrecipient + 0.006 ETHのwithdraw()は実行可能です。\n\n" +
-      "Estimated Gas: " +
+
+      "Amount:\n" +
+      amountText +
+      " ETH\n\n" +
+
+      "Recipient:\n" +
+      recipient +
+      "\n\n" +
+
+      "Estimated Gas:\n" +
       gas.toString() +
       "\n\n" +
-      "まだトランザクションは送信していません。"
+
+      "まだTransactionは送信していません。\n" +
+      "AmountとRecipientをもう一度確認してください。"
     );
 
 
@@ -421,16 +522,17 @@ async () => {
 
     show(
       "❌ シミュレーション失敗\n\n" +
+
       (e.shortMessage ||
        e.reason ||
        e.message ||
        String(e)) +
-      "\n\n" +
-      "考えられる原因:\n" +
-      "・recipientが元のwithdrawalと違う\n" +
-      "・金額が違う\n" +
+
+      "\n\n考えられる原因:\n" +
+      "・Amountが元のwithdrawalと違う\n" +
+      "・Recipientが元のwithdrawalと違う\n" +
       "・すでにClaim済み\n" +
-      "・L2→L1 messageがまだ利用できない"
+      "・対応するL2→L1 messageが存在しない / 利用できない"
     );
 
   }
@@ -443,20 +545,32 @@ async () => {
 
   try {
 
-    claimButton.disabled = true;
+    resetClaim();
 
-    const recipient =
-      recipientInput.value.trim();
+    if (!signer) {
+      throw new Error(
+        "Walletが接続されていません。"
+      );
+    }
+
+    await ensureEthereumMainnet();
+
+    const {
+      amountText,
+      amount,
+      recipient
+    } = getInputValues();
 
 
     /*
-      送信直前にもう一度
-      estimateGasする。
+      入力値がシミュレーション後に
+      変更されている可能性があるため、
+      送信直前にもう一度estimateGas。
     */
 
     const gas =
       await contract.withdraw.estimateGas(
-        AMOUNT,
+        amount,
         recipient
       );
 
@@ -478,26 +592,28 @@ ${BRIDGE}
 Function:
 withdraw(uint256,address)
 
-Amount:
-0.006 ETH
+Claim Amount:
+${amountText} ETH
 
 Recipient:
 ${recipient}
 
-Transaction sender:
+Transaction Sender:
 ${sender}
 
-Value:
+ETH Value sent to contract:
 0 ETH
 
-この内容でWalletを開きます。`
+※ Wallet側の確認画面でも必ず内容を確認してください。
+
+この内容でWalletを開きますか？`
       );
 
 
     if (!ok) {
 
       show(
-        "キャンセルしました。"
+        "キャンセルしました。Transactionは送信されていません。"
       );
 
       return;
@@ -505,13 +621,13 @@ Value:
 
 
     show(
-      "Walletで確認してください..."
+      "Walletの確認画面を確認してください..."
     );
 
 
     const tx =
       await contract.withdraw(
-        AMOUNT,
+        amount,
         recipient,
         {
           gasLimit:
@@ -521,11 +637,12 @@ Value:
 
 
     show(
-      "送信しました。\n\n" +
+      "✅ Transactionを送信しました。\n\n" +
+
       "TX Hash:\n" +
       tx.hash +
-      "\n\n" +
-      "EthereumでConfirm待ち..."
+
+      "\n\nEthereumでConfirmを待っています..."
     );
 
 
@@ -534,9 +651,16 @@ Value:
 
 
     show(
-      "🎉 Claim成功！\n\n" +
-      "0.006 ETH がwithdrawalのrecipientへ送られました。\n\n" +
-      "Ethereum TX:\n" +
+      "🎉 Claim完了\n\n" +
+
+      "Amount:\n" +
+      amountText +
+      " ETH\n\n" +
+
+      "Recipient:\n" +
+      recipient +
+
+      "\n\nEthereum TX:\n" +
       receipt.hash
     );
 
@@ -547,6 +671,7 @@ Value:
 
     show(
       "❌ Claim失敗 / キャンセル\n\n" +
+
       (e.shortMessage ||
        e.reason ||
        e.message ||
@@ -559,6 +684,36 @@ Value:
   }
 
 };
+
+
+amountInput.addEventListener(
+  "input",
+  resetClaim
+);
+
+recipientInput.addEventListener(
+  "input",
+  resetClaim
+);
+
+
+if (window.ethereum) {
+
+  window.ethereum.on(
+    "accountsChanged",
+    () => {
+      location.reload();
+    }
+  );
+
+  window.ethereum.on(
+    "chainChanged",
+    () => {
+      location.reload();
+    }
+  );
+
+}
 
 </script>
 
